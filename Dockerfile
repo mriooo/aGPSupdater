@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install uv
 
 # Clone huami-token repository
-RUN git clone https://github.com/argrento/huami-token.git /app/huami-token
+RUN git clone https://codeberg.org/argrento/huami-token.git /app/huami-token
 
 # Install huami-token dependencies
 WORKDIR /app/huami-token
