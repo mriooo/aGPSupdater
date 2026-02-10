@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  weekly-file-bot:
+    build: .
+    container_name: weekly-file-bot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - HUAMI_EMAIL=${HUAMI_EMAIL}
+      - HUAMI_PASSWORD=${HUAMI_PASSWORD}
+      - OUTPUT_DIR=/app/output
+      - HUAMI_TOKEN_DIR=/app/huami-token
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  output:
+    driver: local
+  logs:
+    driver: local
