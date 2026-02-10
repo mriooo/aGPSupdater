@@ -24,9 +24,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN uv pip install --system -r requirements.txt
 
-# Create output directory
-RUN mkdir -p /app/output
-
 # Copy bot files
 COPY bot.py .
 COPY .env.example .env

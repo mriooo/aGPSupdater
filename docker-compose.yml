@@ -12,8 +12,6 @@ services:
       - HUAMI_EMAIL=${HUAMI_EMAIL}
       - HUAMI_PASSWORD=${HUAMI_PASSWORD}
       - HUAMI_TOKEN_DIR=/app/huami-token
-    volumes:
-      - ./logs:/app/logs
     networks:
       - bot-network
     healthcheck:
@@ -26,7 +24,3 @@ services:
 networks:
   bot-network:
     driver: bridge
-
-volumes:
-  logs:
-    driver: local

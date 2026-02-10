@@ -32,9 +32,15 @@ cp .env.example .env
 ```env
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
+AUTHORIZED_USERS=123456789,987654321
 HUAMI_EMAIL=your_amazfit_email@example.com
 HUAMI_PASSWORD=your_amazfit_password
 ```
+
+**Authorization Configuration:**
+- `AUTHORIZED_USERS`: Comma-separated list of Telegram user IDs who can use the bot
+- Leave empty to allow everyone (not recommended for security)
+- To get your user ID, send a message to [@userinfobot](https://t.me/userinfobot)
 
 ### 3. Get Your Telegram Chat ID
 
@@ -63,6 +69,8 @@ docker-compose down
 - `/status` - Check bot status and next scheduled send
 - `/send_now` - Generate and send file immediately
 - `/next_send` - Show time until next automatic send
+
+**Note:** All commands require authorization. If `AUTHORIZED_USERS` is configured, only those users can interact with the bot.
 
 ## How It Works
 
@@ -93,9 +101,7 @@ With content including:
 ├── docker-compose.yml  # Compose configuration
 ├── requirements.txt    # Python dependencies
 ├── .env.example       # Environment template
-├── README.md          # This file
-├── output/            # Generated files (mounted volume)
-└── logs/              # Application logs (mounted volume)
+└── README.md          # This file
 ```
 
 ## Development
@@ -125,6 +131,7 @@ git clone https://github.com/argrento/huami-token
 ```bash
 export TELEGRAM_BOT_TOKEN="your_token"
 export TELEGRAM_CHAT_ID="your_chat_id"
+export AUTHORIZED_USERS="123456789,987654321"
 export HUAMI_EMAIL="your_email"
 export HUAMI_PASSWORD="your_password"
 python bot.py
@@ -141,9 +148,9 @@ docker run -d \
   --name weekly-file-bot \
   -e TELEGRAM_BOT_TOKEN="your_token" \
   -e TELEGRAM_CHAT_ID="your_chat_id" \
+  -e AUTHORIZED_USERS="123456789,987654321" \
   -e HUAMI_EMAIL="your_email" \
   -e HUAMI_PASSWORD="your_password" \
-  -v $(pwd)/output:/app/output \
   weekly-file-bot
 ```
 
@@ -153,7 +160,8 @@ docker run -d \
 
 1. **Bot doesn't respond**: Check if the bot token is correct and the bot is running
 2. **No file generated**: Verify Amazfit credentials and ensure your device is paired in the Zepp app
-3. **Permission errors**: Ensure the Docker container has write access to the output directory
+3. **Unauthorized access**: Ensure your user ID is in the `AUTHORIZED_USERS` list, or leave it empty for open access
+4. **Permission errors**: Ensure the Docker container has proper permissions
 
 ### Logs
 
@@ -161,6 +169,8 @@ View detailed logs:
 ```bash
 docker-compose logs weekly-file-bot
 ```
+
+**Note:** The bot uses Python's standard logging to stdout/stderr. Logs are managed by Docker and can be viewed with `docker-compose logs`. No separate log directory is needed.
 
 ### Health Checks
 
