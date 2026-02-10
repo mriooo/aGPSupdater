@@ -30,14 +30,28 @@ class WeeklyFileBot:
         self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
         self.huami_email = os.getenv('HUAMI_EMAIL')
         self.huami_password = os.getenv('HUAMI_PASSWORD')
-        self.output_dir = Path('/app/output')
+        self.authorized_users = set()
+        
+        # Parse authorized users from environment variable
+        authorized_users_str = os.getenv('AUTHORIZED_USERS', '')
+        if authorized_users_str:
+            self.authorized_users = set(int(user_id.strip()) for user_id in authorized_users_str.split(','))
+        
         self.huami_token_dir = Path('/app/huami-token')
         
-        # Ensure output directory exists
-        self.output_dir.mkdir(exist_ok=True)
+    def is_authorized(self, user_id: int) -> bool:
+        """Check if user is authorized to use the bot"""
+        # If no authorized users are configured, allow everyone (backward compatibility)
+        if not self.authorized_users:
+            return True
+        return user_id in self.authorized_users
         
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /start command"""
+        if not self.is_authorized(update.effective_user.id):
+            await update.message.reply_text("❌ You are not authorized to use this bot.")
+            return
+            
         await update.message.reply_text(
             "🤖 GPS Data Bot is active!\n\n"
             "I send GPS data files every Friday automatically.\n"
@@ -49,15 +63,22 @@ class WeeklyFileBot:
     
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /status command"""
+        if not self.is_authorized(update.effective_user.id):
+            await update.message.reply_text("❌ You are not authorized to use this bot.")
+            return
+            
         next_send = self.get_next_friday()
         await update.message.reply_text(
             f"✅ Bot is running\n"
             f"📅 Next scheduled send: {next_send.strftime('%Y-%m-%d %H:%M')}\n"
-            f"📁 Output directory: {self.output_dir}"
         )
     
     async def send_now_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /send_now command"""
+        if not self.is_authorized(update.effective_user.id):
+            await update.message.reply_text("❌ You are not authorized to use this bot.")
+            return
+            
         await update.message.reply_text("🔄 Generating GPS files now...")
         
         try:
@@ -73,6 +94,10 @@ class WeeklyFileBot:
     
     async def next_send_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /next_send command"""
+        if not self.is_authorized(update.effective_user.id):
+            await update.message.reply_text("❌ You are not authorized to use this bot.")
+            return
+            
         next_send = self.get_next_friday()
         await update.message.reply_text(
             f"📅 Next automatic send: {next_send.strftime('%Y-%m-%d %H:%M')}\n"
@@ -199,7 +224,7 @@ class WeeklyFileBot:
         """Create output file with key information"""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"huami_token_{timestamp}.txt"
-        file_path = self.output_dir / filename
+        file_path = Path(filename)  # Create in current directory
         
         content = f"""Huami Token Information
 Generated: {key_info['timestamp']}
