@@ -17,12 +17,12 @@ RUN git clone https://github.com/argrento/huami-token.git /app/huami-token
 
 # Install huami-token dependencies
 WORKDIR /app/huami-token
-RUN uv pip install -e ".[dev]"
+RUN uv pip install --system -e ".[dev]"
 
 # Install bot dependencies
 WORKDIR /app
 COPY requirements.txt .
-RUN uv pip install -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 # Create output directory
 RUN mkdir -p /app/output
